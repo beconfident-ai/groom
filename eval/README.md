@@ -18,6 +18,7 @@ node eval/fault-matrix.mjs [reps=50]    # gate rejects + recovers every fault cl
 node eval/scaling.mjs      [trials=50]  # validator cost vs corpus size (median + IQR per size)
 node eval/concurrency.mjs  [k=8] [rounds=500]  # stamp-only vs atomic claim under a k-way race
 node eval/ablation.mjs                  # structural-only vs +canary catch-rate on semantic-loss injections
+node eval/staleness-sim.mjs             # consumption-triggered vs scheduled maintenance (discrete-event simulation)
 node eval/outcome/prep.mjs              # build fresh vs staleness-injected corpus views + question set
 node eval/outcome/grade.mjs             # grade the consuming-agent QA runs (see note below)
 ```
@@ -39,3 +40,4 @@ order-of-magnitude):
 | Concurrency | An 8-way trigger race: the prior debounce-stamp resolves to exactly one run only ~30–60% of the time (a TOCTOU window); the atomic `mkdir` claim resolves to exactly one in 500/500 rounds. |
 | Ablation | Structural validation catches 0/5 semantic-loss injections; fact-level canaries catch the 5/5 they cover, and 0/2 they do not — coverage is targeted, not total. |
 | Outcome | A consuming agent answers a question set over a fresh vs. a staleness-injected corpus. Accuracy on the affected facts collapses 100% → 0% while unchanged controls hold at 100% — corpus staleness propagates directly into wrong agent answers, on exactly the facts the canaries guard. |
+| Staleness sim | Consumption-triggering keeps the most-read pages ~2× fresher than an equal-budget schedule (12% vs 24% stale at Zipf s=1) by spending budget where reads land. The net read-weighted win is regime-dependent: a round-robin schedule wins under near-uniform access; consumption-triggering overtakes it as access skews (−31% at s=1.5). A model, not a live-system measurement. |

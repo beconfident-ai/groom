@@ -1,0 +1,14 @@
+# harness-wiki maintenance schedule (optional — the bundled skill's background refresh
+# is the primary loop; cron is for wikis that are consulted rarely but must stay fresh)
+# Install with:  crontab -e   (paste the line you want)
+#
+# Requires: node >= 20 on PATH, Claude Code CLI authenticated.
+# Runs on the CLI's default model — upgrade the CLI, the pipeline upgrades with it.
+
+# Full pipeline (expand -> lint -> prune) every Monday at 07:00
+0 7 * * 1  cd $HOME/beconfident/harness-wiki && /usr/bin/env node pipeline/run.mjs all >> cron/last-run.log 2>&1
+
+# Lighter alternative: one quality iteration every weekday at 07:00
+# 0 7 * * 1-5  cd $HOME/beconfident/harness-wiki && /usr/bin/env node pipeline/run.mjs iterate >> cron/last-run.log 2>&1
+
+# macOS note: cron works, but launchd survives sleep/restart better. See cron/launchd.plist.example.

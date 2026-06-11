@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- macOS launchd alternative to cron.
+     Install:
+       cp cron/launchd.plist.example ~/Library/LaunchAgents/com.harnesswiki.pipeline.plist
+       # edit WorkingDirectory + node path below, then:
+       launchctl load ~/Library/LaunchAgents/com.harnesswiki.pipeline.plist
+-->
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.harnesswiki.pipeline</string>
+  <key>ProgramArguments</key>
+  <array>
+    <string>/usr/bin/env</string>
+    <string>node</string>
+    <string>pipeline/run.mjs</string>
+    <string>all</string>
+  </array>
+  <key>WorkingDirectory</key>
+  <string>/Users/YOURUSER/beconfident/harness-wiki</string>
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Weekday</key><integer>1</integer>
+    <key>Hour</key><integer>7</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+  <key>StandardOutPath</key>
+  <string>/Users/YOURUSER/beconfident/harness-wiki/cron/last-run.log</string>
+  <key>StandardErrorPath</key>
+  <string>/Users/YOURUSER/beconfident/harness-wiki/cron/last-run.log</string>
+</dict>
+</plist>

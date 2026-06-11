@@ -11,7 +11,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, statSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync, unlinkSync, utimesSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -113,5 +113,22 @@ test("launcher: debounces when the stamp is fresh", () => {
     const r = cli("background-refresh.mjs");
     assert.equal(r.status, 0);
     assert.match(r.stdout, /next eligible in .*skipping/);
+  });
+});
+
+test("launcher: an existing claim blocks a concurrent trigger (atomic lock)", () => {
+  // With the stamp absent the debounce gate passes; a held claim must still stop the
+  // spawn, so simultaneous triggers cannot both start a run. Pre-create the claim to
+  // stand in for a racing winner; the launcher must skip rather than spawn.
+  const CLAIM = STAMP + ".claim";
+  withStamp("absent", () => {
+    mkdirSync(CLAIM);
+    try {
+      const r = cli("background-refresh.mjs");
+      assert.equal(r.status, 0);
+      assert.match(r.stdout, /another trigger holds the claim/);
+    } finally {
+      rmSync(CLAIM, { recursive: true, force: true });
+    }
   });
 });

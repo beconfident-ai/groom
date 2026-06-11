@@ -17,13 +17,20 @@ on anything.
 ```
 wiki/                   the knowledge base (19 pages + meta)
   index.md              map of content — agents and humans start here
+  _meta/canaries.json   load-bearing facts that must survive maintenance
   _meta/journal.md      append-only log of every pipeline run
 pipeline/
-  run.mjs               the maintenance agent runner
+  run.mjs               maintenance runner + checkpoint gate (~250 lines)
+  validate.mjs          deterministic, token-free validator: structure + canaries (~125 lines)
+  background-refresh.mjs  consultation-triggered launcher (~70 lines)
   prompts/              one prompt per operation + shared conventions
+  config.json           background-refresh toggle, op, debounce interval
+eval/                   reproducible mechanism benchmarks (fault matrix, scaling, concurrency, ablation, outcome)
 cron/                   crontab + launchd examples
 .claude/skills/
   harness-wiki/         Claude Code skill: teaches agents to consult the wiki
+.claude/agents/
+  groom.md              subagent returning a structured "groomed brief"
 ```
 
 ## The pipeline
@@ -46,10 +53,12 @@ Every run appends a record (model, cost, summary) to `wiki/_meta/journal.md`.
 
 The wiki refreshes itself **as a side effect of being consulted**: when the bundled
 skill activates (an agent loads wiki pages to answer a question), it first fires
-`pipeline/background-refresh.mjs` as a non-blocking step. That launcher exits in <100ms — it checks the toggle in
-`pipeline/config.json`, debounces against a stamp file (written at spawn time, so it
-doubles as the concurrency guard), and only then spawns a fully detached maintenance
-cycle (default: `lint`) whose output lands in `cron/background-refresh.log`. The current
+`pipeline/background-refresh.mjs` as a non-blocking step. That launcher exits in <100ms — it
+checks the toggle in `pipeline/config.json`, debounces against a stamp file (at most one
+cycle per interval), then acquires an **atomic `mkdir` claim** so that several simultaneous
+consultations resolve to exactly one cycle (the debounce stamp alone is a check-then-write
+race — see `eval/concurrency.mjs`), and only then spawns a fully detached maintenance cycle
+(default: `lint`) whose output lands in `cron/background-refresh.log`. The current
 conversation is never blocked; the next consumer gets a fresher wiki.
 
 ```jsonc
@@ -79,8 +88,9 @@ prompt file — no code change.
 
 ```bash
 npm install
-npm test              # behavior suite — free, no agent calls
-npm run lint          # first real run (spends one agent cycle)
+npm test                     # 10-test behavior suite — free, no agent calls
+node eval/fault-matrix.mjs   # reproduce the mechanism benchmarks (also free)
+npm run lint                 # first real run (spends one agent cycle)
 ```
 
 Requirements: Node ≥ 20, [Claude Code](https://claude.com/claude-code) installed and
@@ -88,11 +98,24 @@ authenticated.
 
 ### Safety posture
 
-The maintenance agent runs with `permissionMode: acceptEdits`, an allowlisted tool set
-(read/write/search + read-only Bash), and a system-prompt constraint to touch only
-`wiki/`. The prompts add structural invariants (never delete `index.md` or `sources.md`;
-prune must reduce line count; expand caps itself at 3–6 files). This is itself an
-exercise in harness engineering — see `wiki/permissions-and-safety.md` for the theory.
+Autonomous edits to a live corpus are the real risk, so every maintenance run is wrapped in
+a **git checkpoint with a deterministic gate** (`run.mjs` + `validate.mjs`). The run commits
+the corpus first, then executes the op with a per-op capability set (read/write/search +
+prefix-scoped read-only Bash; web tools only for `expand`/`research`/`iterate`) and a
+real-time guard that denies any write resolving outside `wiki/`. The edit is **accepted only
+if** it (a) reports terminal success, (b) passes structural validation (frontmatter, link
+resolution, index reachability), (c) passes **fact-level canaries** — load-bearing facts in
+`wiki/_meta/canaries.json` that must survive maintenance, (d) satisfies its postcondition
+(e.g. `prune` must not grow the corpus), and (e) changed nothing outside `wiki/`. Any failure
+triggers `git reset --hard`, turning a mis-prune, a crash, a turn-truncation, or a fence
+escape into a recoverable no-op instead of permanent corruption. The validator costs zero
+model tokens and is reused as a CI test and a free `status` command.
+
+The `eval/` harness measures this machinery (all reproducible, no agent calls): across nine
+fault classes the gate rejects every one and recovers the corpus byte-identically (n=450)
+where a no-gate baseline corrupts it 9/9; the validator scales linearly (~34 µs/page); the
+atomic claim resolves 8-way races 500/500; and structural checks alone miss 5/5 semantic
+losses that the canaries catch. See `wiki/permissions-and-safety.md` for the theory.
 
 ## Using the wiki as agent context
 

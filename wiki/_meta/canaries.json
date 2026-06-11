@@ -1,0 +1,30 @@
+{
+  "_comment": "Fact-level canaries: load-bearing facts that must survive maintenance. An op that legitimately moves a fact updates its canary in the same commit; an unexplained miss fails the gate. Zero model tokens.",
+  "canaries": [
+    {
+      "page": "training-frontier.md",
+      "pattern": "2606\\.09498",
+      "fact": "Self-Harness arXiv id"
+    },
+    {
+      "page": "training-frontier.md",
+      "pattern": "40\\.5.*61\\.9",
+      "fact": "Self-Harness Terminal-Bench gain"
+    },
+    {
+      "page": "evaluation.md",
+      "pattern": "golden-trajectory",
+      "fact": "golden-trajectory replay (eval methodology)"
+    },
+    {
+      "page": "permissions-and-safety.md",
+      "pattern": "93%",
+      "fact": "approval-fatigue rate"
+    },
+    {
+      "page": "context-engineering.md",
+      "pattern": "[Cc]ontext rot",
+      "fact": "core concept name"
+    }
+  ]
+}

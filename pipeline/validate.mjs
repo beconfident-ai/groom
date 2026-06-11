@@ -72,6 +72,30 @@ export function validate(wikiDir = WIKI) {
     if (lines > SOFT_MAX_LINES) warnings.push(`${f}: ${lines} lines (> ${SOFT_MAX_LINES})`);
   }
 
+  // Fact-level canaries: load-bearing facts that must survive maintenance.
+  // Structural checks are necessary but not sufficient (a true page can be made
+  // false by omission while staying structurally valid); canaries close that gap
+  // at zero token cost. An op that legitimately moves a fact updates its canary.
+  const canaryPath = path.join(wikiDir, "_meta", "canaries.json");
+  if (existsSync(canaryPath)) {
+    let spec;
+    try {
+      spec = JSON.parse(readFileSync(canaryPath, "utf8"));
+    } catch {
+      errors.push("_meta/canaries.json: malformed JSON");
+    }
+    for (const c of spec?.canaries ?? []) {
+      if (!fileSet.has(c.page)) {
+        errors.push(`canary: page ${c.page} missing (fact: ${c.fact})`);
+        continue;
+      }
+      const body = readFileSync(path.join(wikiDir, c.page), "utf8");
+      if (!new RegExp(c.pattern).test(body)) {
+        errors.push(`canary failed in ${c.page}: lost "${c.fact}" (/${c.pattern}/)`);
+      }
+    }
+  }
+
   // Every page reachable from index.md (the wiki's stated invariant).
   if (fileSet.has("index.md")) {
     const index = readFileSync(path.join(wikiDir, "index.md"), "utf8");

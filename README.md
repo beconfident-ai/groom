@@ -64,6 +64,7 @@ conversation is never blocked; the next consumer gets a fresher wiki.
 ```jsonc
 // pipeline/config.json
 {
+  "corpus": "wiki",            // which knowledge base GROOM maintains (any path; env GROOM_CORPUS overrides)
   "background_refresh": {
     "enabled": true,           // master toggle — set false to disable at skill startup
     "op": "lint",              // which cycle to run: lint | prune | iterate | expand | all
@@ -72,6 +73,22 @@ conversation is never blocked; the next consumer gets a fresher wiki.
   }
 }
 ```
+
+### Point GROOM at any knowledge base — or bootstrap a new one
+
+GROOM is not tied to the bundled `wiki/`. Set `corpus` in `config.json` (or `GROOM_CORPUS=path`)
+to maintain any markdown knowledge base, and scaffold a fresh one end-to-end:
+
+```bash
+GROOM_CORPUS=docs node pipeline/run.mjs init "My Project Docs"  # creates a valid, groomable corpus
+GROOM_CORPUS=docs node pipeline/run.mjs expand                  # then populate it from the field
+```
+
+`init` writes the minimal valid skeleton (`index.md`, `sources.md`, `glossary.md`,
+`_meta/canaries.json`, journal) so the corpus passes the validator from its first commit.
+GROOM is also **retrieval-agnostic**: it maintains clean, well-linked markdown: *how* an agent
+consults it — progressive disclosure, full-context load, BM25, or a dense retriever — is a
+pluggable layer, not GROOM's concern. A groomed corpus benefits whichever you use.
 
 Cron (`cron/crontab.example`, `cron/launchd.plist.example`) remains available as a belt
 to the skill's suspenders — useful if the wiki is consulted rarely but should stay fresh.

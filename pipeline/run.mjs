@@ -20,15 +20,19 @@
 
 import { query } from "@anthropic-ai/claude-agent-sdk";
 import { appendFile, readFile, readdir, stat } from "node:fs/promises";
-import { existsSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { validate } from "./validate.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const WIKI = path.join(ROOT, "wiki");
 const PROMPTS = path.join(ROOT, "pipeline", "prompts");
+/** The corpus directory is configurable, so one GROOM install can maintain any knowledge
+ *  base: env GROOM_CORPUS wins, else config.json "corpus", else the bundled "wiki". */
+const CONFIG = (() => { try { return JSON.parse(readFileSync(path.join(ROOT, "pipeline", "config.json"), "utf8")); } catch { return {}; } })();
+const WIKI = path.resolve(ROOT, process.env.GROOM_CORPUS ?? CONFIG.corpus ?? "wiki");
+const CORPUS = path.relative(ROOT, WIKI) || "."; // git pathspec for add/clean and the fence check
 const JOURNAL = path.join(WIKI, "_meta", "journal.md");
 const STAMP = path.join(WIKI, "_meta", ".last-background-refresh");
 
@@ -57,9 +61,9 @@ export const OP_CONFIG = {
 };
 
 const FENCE =
-  "You are the maintenance agent for a markdown knowledge base. Only modify files " +
-  "inside the wiki/ directory. Never touch pipeline/, README.md, package.json, or " +
-  "anything outside wiki/. Edits outside wiki/ are rejected and reverted.";
+  `You are the maintenance agent for a markdown knowledge base. Only modify files ` +
+  `inside the ${CORPUS}/ directory. Never touch pipeline/, README.md, package.json, or ` +
+  `anything outside ${CORPUS}/. Edits outside ${CORPUS}/ are rejected and reverted.`;
 
 /** Real-time intent guard: deny mutations whose target resolves outside wiki/.
  *  (Backstopped mechanically by the git fence-check below, which does not trust the SDK.) */
@@ -158,7 +162,7 @@ async function run(op) {
   const started = new Date().toISOString();
   console.log(`\n=== ${op} (${started}) ===`);
   const useGit = gitReady();
-  const before = useGit ? validate().stats.lines : null;
+  const before = useGit ? validate(WIKI).stats.lines : null;
   if (useGit && changedPaths().length) git("stash", "--include-untracked", "--quiet"); // start clean
 
   let outcome = { cost: 0, result: "", subtype: "spawn-failed", isError: true };
@@ -171,12 +175,12 @@ async function run(op) {
     if (outcome.subtype !== "success" || outcome.isError) {
       status = `FAILED (${outcome.subtype})`;
     } else if (useGit) {
-      const escaped = changedPaths().filter((p) => !p.startsWith("wiki/"));
+      const escaped = changedPaths().filter((p) => !(p === CORPUS || p.startsWith(CORPUS + "/")));
       if (escaped.length) {
-        git("checkout", "--", ...escaped); // revert fence violations, keep wiki work
+        git("checkout", "--", ...escaped); // revert fence violations, keep corpus work
         status = `FAILED (escaped fence: ${escaped.join(", ")})`;
       } else {
-        const check = validate();
+        const check = validate(WIKI);
         delta = check.stats.lines - before;
         if (!check.ok) status = `FAILED (invalid: ${check.errors[0]})`;
         else if (op === "prune" && delta > 0) status = `FAILED (prune grew the wiki by ${delta})`;
@@ -192,12 +196,12 @@ async function run(op) {
   // Commit on success, hard-reset on failure.
   if (useGit) {
     if (status.startsWith("ok") && changedPaths().length) {
-      git("add", "wiki");
+      git("add", CORPUS);
       git("commit", "--quiet", "-m", `groom ${op}: ${headline(outcome.result).slice(0, 60)}`);
       commit = git("rev-parse", "--short", "HEAD");
     } else if (!status.startsWith("ok")) {
       git("reset", "--hard", "--quiet");
-      git("clean", "-fdq", "wiki");
+      git("clean", "-fdq", CORPUS);
     }
   }
 
@@ -210,7 +214,7 @@ async function run(op) {
 
 async function status() {
   console.log("GROOM status\n");
-  const check = validate();
+  const check = validate(WIKI);
   console.log(`wiki:    ${check.stats.pages} pages, ${check.stats.lines} lines — ${check.ok ? "valid" : check.errors.length + " ERRORS"}`);
   for (const e of check.errors.slice(0, 5)) console.log(`         ✗ ${e}`);
 
@@ -229,16 +233,51 @@ async function status() {
   process.exit(check.ok ? 0 : 1);
 }
 
+/* ---------- init: scaffold a fresh, valid corpus ---------- */
+
+/** Generate the minimal valid corpus skeleton at the configured path, so a new knowledge
+ *  base is groomable from its first commit. Content is then grown by expand/research. */
+function init() {
+  if (existsSync(path.join(WIKI, "index.md"))) {
+    console.error(`refusing to overwrite: ${CORPUS}/index.md already exists`);
+    process.exit(1);
+  }
+  const topic = process.argv.slice(3).join(" ") || "Knowledge Base";
+  const today = new Date().toISOString().slice(0, 10);
+  const fm = (title, summary) =>
+    `---\ntitle: ${title}\nsummary: ${summary}\ntags: []\nupdated: ${today}\nconfidence: established\n---\n\n`;
+  mkdirSync(path.join(WIKI, "_meta"), { recursive: true });
+  writeFileSync(path.join(WIKI, "index.md"),
+    fm(topic, `Map of content for ${topic}.`) +
+    `# ${topic}\n\nMap of content — pages are linked here as the corpus grows.\n\n` +
+    "_Seed this corpus with `node pipeline/run.mjs expand` (or `research`); set the domain, " +
+    "audience, and style in `pipeline/prompts/_conventions.md` first._\n");
+  writeFileSync(path.join(WIKI, "sources.md"),
+    fm("Sources", "Primary sources behind the claims in this corpus.") +
+    "# Sources\n\nMaps claims to primary sources. Add entries as pages cite them.\n");
+  writeFileSync(path.join(WIKI, "glossary.md"),
+    fm("Glossary", "Canonical vocabulary for this corpus.") +
+    `# Glossary\n\nCanonical terms and definitions for ${topic}.\n`);
+  writeFileSync(path.join(WIKI, "_meta", "canaries.json"),
+    JSON.stringify({ _comment: "Fact-level canaries: load-bearing facts that must survive maintenance.", canaries: [] }, null, 2) + "\n");
+  writeFileSync(JOURNAL, `# ${topic} — maintenance journal\n`);
+  const v = validate(WIKI);
+  console.log(`initialized corpus at ${CORPUS}/ — ${v.stats.pages} pages, valid: ${v.ok}`);
+  console.log("next: edit pipeline/prompts/_conventions.md for your domain, then `node pipeline/run.mjs expand`.");
+  process.exit(v.ok ? 0 : 1);
+}
+
 /* ---------- entrypoint ---------- */
 
 function usage() {
-  console.error(`usage: node pipeline/run.mjs <${Object.keys(PIPELINES).join("|")}|status>`);
+  console.error(`usage: node pipeline/run.mjs <${Object.keys(PIPELINES).join("|")}|status|init [topic]>`);
   process.exit(1);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? "").href) {
   const arg = process.argv[2];
   if (arg === "status") await status();
+  else if (arg === "init") init();
   else {
     const steps = PIPELINES[arg] ?? usage();
     for (const op of steps) {

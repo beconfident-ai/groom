@@ -16,7 +16,12 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
-const WIKI = path.join(ROOT, "wiki");
+// Default corpus is configurable (env GROOM_CORPUS, else config.json "corpus", else "wiki");
+// callers like run.mjs pass an explicit dir, so this only governs the CLI / no-arg use.
+const CORPUS = process.env.GROOM_CORPUS
+  ?? (() => { try { return JSON.parse(readFileSync(path.join(ROOT, "pipeline", "config.json"), "utf8")).corpus; } catch { return null; } })()
+  ?? "wiki";
+const WIKI = path.resolve(ROOT, CORPUS);
 
 const CONFIDENCE = new Set(["established", "emerging", "contested"]);
 const REQUIRED = ["index.md", "sources.md", "glossary.md"];

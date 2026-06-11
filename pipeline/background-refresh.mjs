@@ -25,16 +25,20 @@ import { PIPELINES } from "./run.mjs";
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(HERE, "..");
-const STAMP = path.join(ROOT, "wiki", "_meta", ".last-background-refresh");
 const HOUR = 3.6e6;
 
 const hours = (ms) => (ms / HOUR).toFixed(1);
 const attempt = (fn) => { try { return fn(); } catch { return undefined; } };
 const exit = (reason) => { console.log(`[background-refresh] ${reason}`); process.exit(0); };
 
+// Config — the corpus path (env GROOM_CORPUS wins) and the background_refresh block. The
+// stamp lives under the configured corpus, so the launcher and run.mjs agree on one base.
+const fullCfg = attempt(() => JSON.parse(readFileSync(path.join(HERE, "config.json"), "utf8"))) ?? {};
+const CORPUS = process.env.GROOM_CORPUS ?? fullCfg.corpus ?? "wiki";
+const STAMP = path.join(path.resolve(ROOT, CORPUS), "_meta", ".last-background-refresh");
+
 // Gate 1 — toggle
-const cfg = attempt(() =>
-  JSON.parse(readFileSync(path.join(HERE, "config.json"), "utf8")).background_refresh);
+const cfg = fullCfg.background_refresh;
 if (!cfg) exit("no config — skipping");
 if (!cfg.enabled) exit("disabled in pipeline/config.json — skipping");
 

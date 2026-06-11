@@ -1,4 +1,5 @@
 {
+  "corpus": "wiki",
   "background_refresh": {
     "enabled": true,
     "op": "lint",

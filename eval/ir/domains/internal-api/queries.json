@@ -1,0 +1,145 @@
+{
+  "domain": "internal-api",
+  "queries": [
+    {
+      "id": "q1",
+      "query": "How do I authenticate a request to the Meridian API?",
+      "relevant_pages": ["authentication.md"],
+      "answer": "Send a bearer token in the Authorization header, e.g. Authorization: Bearer mrd_live_…",
+      "answer_fact": "`Authorization: Bearer mrd_live_…`"
+    },
+    {
+      "id": "q2",
+      "query": "What prefix do live versus test API keys use?",
+      "relevant_pages": ["authentication.md"],
+      "answer": "Live keys start with mrd_live_ and test keys with mrd_test_, each followed by a 32-character base62 secret.",
+      "answer_fact": "Live keys are prefixed **`mrd_live_`** and test keys **`mrd_test_`**"
+    },
+    {
+      "id": "q3",
+      "query": "How often should I rotate my live API keys and how long does the old one stay valid?",
+      "relevant_pages": ["authentication.md"],
+      "answer": "Rotate every 90 days; the old secret stays valid for a 24-hour grace window after rotation.",
+      "answer_fact": "the old one stays valid for a **24-hour grace window**"
+    },
+    {
+      "id": "q4",
+      "query": "What's the endpoint to create a new document?",
+      "relevant_pages": ["core-endpoints.md"],
+      "answer": "POST /v2/documents, which returns HTTP 201 with the new id.",
+      "answer_fact": "`POST /v2/documents` — create a document. Returns HTTP 201"
+    },
+    {
+      "id": "q5",
+      "query": "How many operations can I put in a single batch request?",
+      "relevant_pages": ["core-endpoints.md"],
+      "answer": "Up to 50 operations per POST /v2/batch request.",
+      "answer_fact": "Up to **50 operations** may be submitted in one `POST /v2/batch` request"
+    },
+    {
+      "id": "q6",
+      "query": "Is search a GET or POST, and what's the path?",
+      "relevant_pages": ["core-endpoints.md"],
+      "answer": "Search is a POST /v2/search call, not a GET.",
+      "answer_fact": "Full-text search is a `POST /v2/search` call (not GET)"
+    },
+    {
+      "id": "q7",
+      "query": "What is the request-per-minute limit on the Standard tier?",
+      "relevant_pages": ["rate-limits.md"],
+      "answer": "120 requests per minute on the Standard tier.",
+      "answer_fact": "**Standard** tier: **120 requests/min**"
+    },
+    {
+      "id": "q8",
+      "query": "How many requests per minute does the Enterprise tier allow?",
+      "relevant_pages": ["rate-limits.md"],
+      "answer": "3000 requests per minute on Enterprise.",
+      "answer_fact": "**Enterprise** tier: **3000 requests/min**"
+    },
+    {
+      "id": "q9",
+      "query": "What HTTP status and error code do I get when I hit the per-minute rate limit?",
+      "relevant_pages": ["rate-limits.md", "error-codes.md"],
+      "answer": "HTTP 429 with error code 4290 (rate_limited).",
+      "answer_fact": "**HTTP 429** with [error code 4290](error-codes.md) (`rate_limited`)"
+    },
+    {
+      "id": "q10",
+      "query": "Which error code means a monthly quota was exhausted?",
+      "relevant_pages": ["rate-limits.md", "error-codes.md"],
+      "answer": "Error code 4293 (quota_exceeded).",
+      "answer_fact": "[error code 4293](error-codes.md) (`quota_exceeded`)"
+    },
+    {
+      "id": "q11",
+      "query": "What does error 4292 mean?",
+      "relevant_pages": ["error-codes.md", "idempotency.md"],
+      "answer": "An idempotency key was reused with a different request body (HTTP 409).",
+      "answer_fact": "**4292** `idempotency_key_reused` — an idempotency key was reused with a **different** request body (HTTP 409)"
+    },
+    {
+      "id": "q12",
+      "query": "What error code is returned when an API key lacks the required scope?",
+      "relevant_pages": ["error-codes.md", "authentication.md"],
+      "answer": "Error code 4031 (insufficient_scope), HTTP 403.",
+      "answer_fact": "**4031** `insufficient_scope` — key lacks the required scope (HTTP 403)"
+    },
+    {
+      "id": "q13",
+      "query": "What is the default and maximum page size for list endpoints?",
+      "relevant_pages": ["pagination.md"],
+      "answer": "Default page size is 25 items and the maximum is 100 items.",
+      "answer_fact": "The default page size is **25 items** and the maximum is **100 items**"
+    },
+    {
+      "id": "q14",
+      "query": "How long is a pagination cursor valid before it goes stale?",
+      "relevant_pages": ["pagination.md"],
+      "answer": "Cursors are valid for 1 hour after they are issued.",
+      "answer_fact": "Cursors are valid for **1 hour** after issue"
+    },
+    {
+      "id": "q15",
+      "query": "How long are idempotency results cached, and what header marks a replay?",
+      "relevant_pages": ["idempotency.md"],
+      "answer": "Cached for 24 hours; replays include the header Idempotency-Replayed: true.",
+      "answer_fact": "Cached idempotency results are retained for **24 hours**"
+    },
+    {
+      "id": "q16",
+      "query": "How quickly must my webhook endpoint respond before a delivery is considered failed?",
+      "relevant_pages": ["webhooks.md"],
+      "answer": "It must return a 2xx status within 5 seconds.",
+      "answer_fact": "respond with a **2xx status within 5 seconds**"
+    },
+    {
+      "id": "q17",
+      "query": "How many times does Meridian retry a failed webhook delivery and what's the backoff?",
+      "relevant_pages": ["webhook-retries.md"],
+      "answer": "Up to 8 times with exponential backoff from 1 minute up to 24 hours.",
+      "answer_fact": "retried up to **8 times** with exponential backoff: the delays are **1 minute, 5 minutes, 30 minutes, 1 hour, 2 hours, 4 hours, 8 hours, and 24 hours**"
+    },
+    {
+      "id": "q18",
+      "query": "How are webhook signatures computed so I can verify them?",
+      "relevant_pages": ["webhook-retries.md"],
+      "answer": "An HMAC-SHA256 of the string {timestamp}.{raw_body}, keyed with the whsec_ signing secret, hex-encoded.",
+      "answer_fact": "**HMAC-SHA256** of the literal string `{timestamp}.{raw_body}`"
+    },
+    {
+      "id": "q19",
+      "query": "What's the npm package name and current version of the Meridian SDK?",
+      "relevant_pages": ["sdk-overview.md"],
+      "answer": "Package @meridian/sdk; latest stable version is 4.3.2.",
+      "answer_fact": "The latest stable version is **4.3.2**"
+    },
+    {
+      "id": "q20",
+      "query": "What's the SDK's default per-request timeout and how many times does it retry?",
+      "relevant_pages": ["sdk-overview.md"],
+      "answer": "Default timeout is 30000 ms (30 seconds); maxRetries defaults to 3.",
+      "answer_fact": "default **30000** (30 seconds)"
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "domain": "support-kb",
+  "queries": [
+    {
+      "id": "q1",
+      "query": "How many seats and how much storage do I get on the Team plan?",
+      "relevant_pages": ["plans-and-limits.md"],
+      "answer": "The Team plan is $199/month and includes 10 seats and 50 GB of storage.",
+      "answer_fact": "**Team — $199/month.** 10 seats, 50 GB of storage"
+    },
+    {
+      "id": "q2",
+      "query": "What happens if I go over my monthly event quota?",
+      "relevant_pages": ["plans-and-limits.md"],
+      "answer": "Lumen keeps ingesting and charges $0.50 per additional 10,000 events at the end of the cycle.",
+      "answer_fact": "charges **$0.50 per additional 10,000 events** at the end of the cycle"
+    },
+    {
+      "id": "q3",
+      "query": "How long are raw events kept on the Starter plan?",
+      "relevant_pages": ["data-retention-and-export.md"],
+      "answer": "Raw events are retained for 90 days on Starter.",
+      "answer_fact": "**Starter — 90 days.**"
+    },
+    {
+      "id": "q4",
+      "query": "What is the longest data retention I can get, and on which plan?",
+      "relevant_pages": ["data-retention-and-export.md"],
+      "answer": "Enterprise retention is configurable up to 7 years.",
+      "answer_fact": "**Enterprise — configurable up to 7 years.**"
+    },
+    {
+      "id": "q5",
+      "query": "Which API key prefix should I use on my backend server?",
+      "relevant_pages": ["api-access.md", "getting-started.md"],
+      "answer": "Use a Server Key, which has the prefix lm_sk_, as a Bearer token.",
+      "answer_fact": "a **Server Key** (prefix `lm_sk_`) passed as a Bearer token"
+    },
+    {
+      "id": "q6",
+      "query": "What is the base URL for the Lumen REST API?",
+      "relevant_pages": ["api-access.md"],
+      "answer": "The base URL is https://api.lumen.io/v1 over HTTPS.",
+      "answer_fact": "The base URL is **`https://api.lumen.io/v1`**"
+    },
+    {
+      "id": "q7",
+      "query": "How many events can I send in a single batch request?",
+      "relevant_pages": ["api-access.md", "service-limits.md"],
+      "answer": "Up to 500 events per batch request.",
+      "answer_fact": "A batch request accepts at most **500 events**"
+    },
+    {
+      "id": "q8",
+      "query": "What's the API rate limit on the Business plan?",
+      "relevant_pages": ["service-limits.md"],
+      "answer": "1,200 requests per minute on Business.",
+      "answer_fact": "**Business — 1,200 requests per minute.**"
+    },
+    {
+      "id": "q9",
+      "query": "I'm getting ERR_INVALID_KEY. What does that mean and how do I fix it?",
+      "relevant_pages": ["troubleshooting-errors.md"],
+      "answer": "It means the SDK was initialized with a key that does not exist or was revoked; copy the full correct key and use the right key type.",
+      "answer_fact": "the SDK was initialized with a key that does not exist or was revoked"
+    },
+    {
+      "id": "q10",
+      "query": "My events aren't showing up even though track() succeeds — how long should I wait?",
+      "relevant_pages": ["troubleshooting-errors.md", "getting-started.md"],
+      "answer": "Events stream to Live Events within about 30 seconds, so wait about two minutes before troubleshooting further.",
+      "answer_fact": "events stream to **Live Events** within about 30 seconds, so wait two minutes first"
+    },
+    {
+      "id": "q11",
+      "query": "Do I get a discount for paying annually?",
+      "relevant_pages": ["billing-and-invoicing.md"],
+      "answer": "Yes, annual billing gives a 20% discount.",
+      "answer_fact": "Switching to **annual billing** gives a **20% discount**"
+    },
+    {
+      "id": "q12",
+      "query": "Can I get a refund on my annual subscription?",
+      "relevant_pages": ["billing-and-invoicing.md"],
+      "answer": "Annual plans cancelled within 14 days of purchase get a full refund; after that they are not refunded.",
+      "answer_fact": "Annual plans cancelled within **14 days** of purchase are eligible for a full refund"
+    },
+    {
+      "id": "q13",
+      "query": "What happens to my workspace if my credit card keeps failing?",
+      "relevant_pages": ["billing-and-invoicing.md"],
+      "answer": "Lumen retries the charge three times over seven days; after the third failure the workspace is downgraded to Free.",
+      "answer_fact": "Lumen retries **three times over seven days**"
+    },
+    {
+      "id": "q14",
+      "query": "On which plans is SAML single sign-on available?",
+      "relevant_pages": ["account-and-sso.md"],
+      "answer": "SAML 2.0 SSO is available on the Business and Enterprise tiers.",
+      "answer_fact": "**SAML 2.0 single sign-on is available on the Business and Enterprise tiers.**"
+    },
+    {
+      "id": "q15",
+      "query": "Do read-only viewers use up one of my paid seats?",
+      "relevant_pages": ["account-and-sso.md"],
+      "answer": "No, viewers do not consume a seat on any paid tier.",
+      "answer_fact": "**Viewers do not consume a seat** on any paid tier"
+    },
+    {
+      "id": "q16",
+      "query": "What's the default conversion window for a funnel?",
+      "relevant_pages": ["features-dashboards.md"],
+      "answer": "The default funnel conversion window is 14 days.",
+      "answer_fact": "The default **conversion window is 14 days**"
+    },
+    {
+      "id": "q17",
+      "query": "How often does a dynamic cohort update its membership?",
+      "relevant_pages": ["features-dashboards.md"],
+      "answer": "A dynamic cohort re-evaluates every hour.",
+      "answer_fact": "**re-evaluates every hour**"
+    },
+    {
+      "id": "q18",
+      "query": "Which regions can I host my Lumen data in?",
+      "relevant_pages": ["security-and-compliance.md"],
+      "answer": "US (Virginia) or EU (Frankfurt), chosen at workspace creation and fixed afterward.",
+      "answer_fact": "**US (Virginia)** or **EU (Frankfurt)**"
+    },
+    {
+      "id": "q19",
+      "query": "What security certification does Lumen hold?",
+      "relevant_pages": ["security-and-compliance.md"],
+      "answer": "Lumen maintains a SOC 2 Type II report, renewed annually.",
+      "answer_fact": "a **SOC 2 Type II** report, renewed annually"
+    },
+    {
+      "id": "q20",
+      "query": "How does Lumen learn the baseline for an anomaly alert?",
+      "relevant_pages": ["alerts-and-notifications.md"],
+      "answer": "It learns the baseline from the trailing 30 days and flags values outside about two standard deviations.",
+      "answer_fact": "Lumen learns the baseline from the **trailing 30 days**"
+    }
+  ]
+}

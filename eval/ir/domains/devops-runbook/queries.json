@@ -1,0 +1,145 @@
+{
+  "domain": "devops-runbook",
+  "queries": [
+    {
+      "id": "q1",
+      "query": "What's the CPU and memory cap for a Tier-2 service pod on Orbit?",
+      "relevant_pages": ["resource-quotas.md"],
+      "answer": "Tier-2 services cap at 2 vCPU / 4 GiB per pod.",
+      "answer_fact": "Tier-2** services cap at 2 vCPU / 4 GiB"
+    },
+    {
+      "id": "q2",
+      "query": "How much CPU and memory can a Tier-0 pod use?",
+      "relevant_pages": ["resource-quotas.md"],
+      "answer": "Tier-0 pods cap at 4 vCPU / 8 GiB.",
+      "answer_fact": "Tier-0** pods cap at 4 vCPU / 8 GiB"
+    },
+    {
+      "id": "q3",
+      "query": "What CPU utilization does the autoscaler target by default?",
+      "relevant_pages": ["autoscaling-policy.md"],
+      "answer": "65% average CPU utilisation.",
+      "answer_fact": "65% average CPU utilisation"
+    },
+    {
+      "id": "q4",
+      "query": "What are the min and max replicas for a Tier-1 service?",
+      "relevant_pages": ["autoscaling-policy.md"],
+      "answer": "Minimum 3, maximum 24 replicas.",
+      "answer_fact": "Tier-1**: min 3 replicas, max 24"
+    },
+    {
+      "id": "q5",
+      "query": "When does Orbit page on-call for high latency?",
+      "relevant_pages": ["alert-thresholds.md"],
+      "answer": "When p99 latency exceeds 800 ms for 5 minutes.",
+      "answer_fact": "page on-call when p99 latency exceeds 800 ms for 5 min"
+    },
+    {
+      "id": "q6",
+      "query": "What error rate triggers a page?",
+      "relevant_pages": ["alert-thresholds.md"],
+      "answer": "5xx error rate above 2% of requests for 3 minutes.",
+      "answer_fact": "page on-call when the 5xx error rate exceeds 2% of requests for 3 min"
+    },
+    {
+      "id": "q7",
+      "query": "What command do I run to deploy a service to production?",
+      "relevant_pages": ["deploy-procedure.md"],
+      "answer": "orbitctl deploy <service> --env prod --tag <sha>",
+      "answer_fact": "orbitctl deploy <service> --env prod --tag <sha>"
+    },
+    {
+      "id": "q8",
+      "query": "How does the canary rollout split traffic and how long does each stage bake?",
+      "relevant_pages": ["deploy-procedure.md"],
+      "answer": "10% then 50% then 100%, with a 10-minute bake at each stage.",
+      "answer_fact": "**10% → 50% → 100%** of traffic. Orbit holds at each stage for a **10-minute bake period**"
+    },
+    {
+      "id": "q9",
+      "query": "When is the production deploy freeze window?",
+      "relevant_pages": ["deploy-procedure.md"],
+      "answer": "Friday 17:00 UTC through Monday 09:00 UTC.",
+      "answer_fact": "**Friday 17:00 UTC through Monday 09:00 UTC**"
+    },
+    {
+      "id": "q10",
+      "query": "How do I roll back a bad release in prod?",
+      "relevant_pages": ["rollback-procedure.md"],
+      "answer": "Run orbitctl rollback <service> --env prod.",
+      "answer_fact": "orbitctl rollback <service> --env prod"
+    },
+    {
+      "id": "q11",
+      "query": "How many previous revisions can I roll back to, and how fast is a rollback?",
+      "relevant_pages": ["rollback-procedure.md"],
+      "answer": "The last 10 revisions are kept and a rollback completes in under 90 seconds.",
+      "answer_fact": "last 10 revisions"
+    },
+    {
+      "id": "q12",
+      "query": "What's the definition of a SEV-1 incident?",
+      "relevant_pages": ["incident-severity.md"],
+      "answer": "A customer-facing outage.",
+      "answer_fact": "SEV-1** = customer-facing outage"
+    },
+    {
+      "id": "q13",
+      "query": "Does a SEV-3 page the on-call engineer overnight?",
+      "relevant_pages": ["incident-severity.md"],
+      "answer": "No — SEV-3 does not page outside business hours.",
+      "answer_fact": "SEV-3 does **not** page outside business hours"
+    },
+    {
+      "id": "q14",
+      "query": "How quickly must on-call acknowledge a page before it escalates?",
+      "relevant_pages": ["on-call-escalation.md"],
+      "answer": "Within 5 minutes.",
+      "answer_fact": "acknowledge within 5 minutes"
+    },
+    {
+      "id": "q15",
+      "query": "Who gets the page if the primary doesn't ack, and after how long?",
+      "relevant_pages": ["on-call-escalation.md"],
+      "answer": "The secondary on-call after 10 minutes, then the engineering manager after 20 minutes.",
+      "answer_fact": "escalates to the secondary on-call after **10 minutes**. If still unacknowledged, it escalates to the engineering manager after **20 minutes**"
+    },
+    {
+      "id": "q16",
+      "query": "How often are secrets rotated on Orbit?",
+      "relevant_pages": ["secrets-management.md"],
+      "answer": "Every 90 days.",
+      "answer_fact": "90-day maximum age and are rotated every 90 days"
+    },
+    {
+      "id": "q17",
+      "query": "Where in Vault do a service's secrets live?",
+      "relevant_pages": ["secrets-management.md"],
+      "answer": "Under the path orbit/<env>/<service>.",
+      "answer_fact": "orbit/<env>/<service>"
+    },
+    {
+      "id": "q18",
+      "query": "What's the difference between the healthz and readyz endpoints?",
+      "relevant_pages": ["health-checks.md"],
+      "answer": "/healthz is liveness (process alive, no dependency checks); /readyz is readiness (ready to serve, may check dependencies).",
+      "answer_fact": "`/readyz` is the readiness probe"
+    },
+    {
+      "id": "q19",
+      "query": "What line coverage does CI require to let a build through?",
+      "relevant_pages": ["cicd-gates.md"],
+      "answer": "At least 80%.",
+      "answer_fact": "line coverage must be **at least 80%**"
+    },
+    {
+      "id": "q20",
+      "query": "How many approvals are needed to promote a build to production?",
+      "relevant_pages": ["cicd-gates.md"],
+      "answer": "Two human approvals from the owning team.",
+      "answer_fact": "two human approvals"
+    }
+  ]
+}

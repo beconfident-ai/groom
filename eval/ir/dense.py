@@ -8,8 +8,12 @@ retriever-agnostic (holds for lexical AND dense).
 
     python3 eval/ir/dense.py
 """
-import json, os, re, math, sys
+import json, os, re, math, sys, warnings
 from pathlib import Path
+
+# Apple's Accelerate BLAS raises spurious divide/overflow/invalid fp-flags during float32
+# matmul; the scores are verified finite and bit-stable, so silence the benign RuntimeWarning.
+warnings.filterwarnings("ignore", category=RuntimeWarning)
 
 HERE = Path(__file__).resolve().parent
 DOMAINS = HERE / "domains"
@@ -69,13 +73,13 @@ def embed(texts):
     return np.asarray(v)
 
 def eval_state(pages, queries):
-    P = embed([p["text"] for p in pages])
-    Q = embed([q["query"] for q in queries])
+    P = np.ascontiguousarray(embed([p["text"] for p in pages]), dtype=np.float32)
+    Q = np.ascontiguousarray(embed([q["query"] for q in queries]), dtype=np.float32)
     files = [p["file"] for p in pages]
+    S = P @ Q.T  # [pages x queries] cosine (embeddings are L2-normalized); one clean matmul
     rows = []
     for qi, q in enumerate(queries):
-        sims = P @ Q[qi]
-        ranked = [files[i] for i in np.argsort(-sims)]
+        ranked = [files[i] for i in np.argsort(-S[:, qi])]
         rows.append(query_metrics(ranked, q["relevant_pages"]))
     return mean(rows)
 

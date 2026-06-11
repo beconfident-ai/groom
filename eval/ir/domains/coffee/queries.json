@@ -1,0 +1,145 @@
+{
+  "domain": "coffee",
+  "queries": [
+    {
+      "id": "q1",
+      "query": "What coffee-to-water ratio should I use for a V60 pour-over?",
+      "relevant_pages": ["pour-over-v60.md", "dose-and-ratio.md"],
+      "answer": "22 grams of coffee to 360 grams of water, a 1:16.4 ratio rounded to 1:16.",
+      "answer_fact": "a 1:16.4 ratio rounded to 1:16 for daily use"
+    },
+    {
+      "id": "q2",
+      "query": "How long should the bloom last on a V60 and how much water do I use for it?",
+      "relevant_pages": ["pour-over-v60.md"],
+      "answer": "The bloom uses 50 grams of water for 45 seconds.",
+      "answer_fact": "bloom uses 50 grams of water for 45 seconds"
+    },
+    {
+      "id": "q3",
+      "query": "What total brew time should a V60 pour-over aim for?",
+      "relevant_pages": ["pour-over-v60.md"],
+      "answer": "About 2 minutes 45 seconds from first pour to drawdown completion.",
+      "answer_fact": "2 minutes 45 seconds"
+    },
+    {
+      "id": "q4",
+      "query": "How long do you steep coffee in a French press?",
+      "relevant_pages": ["french-press.md"],
+      "answer": "A total of 8 minutes, breaking the crust at 4 minutes.",
+      "answer_fact": "Steep for a **total of 8 minutes**"
+    },
+    {
+      "id": "q5",
+      "query": "What ratio does the French press recipe use?",
+      "relevant_pages": ["french-press.md", "dose-and-ratio.md"],
+      "answer": "A 1:15 ratio, for example 60 g coffee to 900 g water.",
+      "answer_fact": "**1:15 ratio**, for example 60 grams of coffee to 900 grams of water"
+    },
+    {
+      "id": "q6",
+      "query": "Which AeroPress method and ratio does the lab recommend?",
+      "relevant_pages": ["aeropress.md"],
+      "answer": "The inverted method with a 1:13 ratio, 16 g coffee to 208 g water.",
+      "answer_fact": "**inverted method** with a **1:13 ratio**: 16 grams of coffee to 208 grams of water"
+    },
+    {
+      "id": "q7",
+      "query": "What water temperature is best for brewing with an AeroPress?",
+      "relevant_pages": ["aeropress.md", "brew-temperature.md"],
+      "answer": "88 degrees Celsius, the coolest hot method.",
+      "answer_fact": "AeroPress — 88 degrees Celsius"
+    },
+    {
+      "id": "q8",
+      "query": "How long should I steep coffee in the AeroPress before pressing?",
+      "relevant_pages": ["aeropress.md"],
+      "answer": "Steep for 90 seconds, stirring 5 times at the 60-second mark.",
+      "answer_fact": "**steep for 90 seconds**"
+    },
+    {
+      "id": "q9",
+      "query": "What dose and yield define a standard double espresso shot?",
+      "relevant_pages": ["espresso.md"],
+      "answer": "An 18-gram dose yielding 36 grams of liquid, a 1:2 ratio.",
+      "answer_fact": "**1:2 ratio**: an **18-gram dose** in a double basket yielding **36 grams** of liquid espresso"
+    },
+    {
+      "id": "q10",
+      "query": "What pressure should espresso be extracted at?",
+      "relevant_pages": ["espresso.md"],
+      "answer": "9 bars of pressure.",
+      "answer_fact": "**9 bars of pressure**"
+    },
+    {
+      "id": "q11",
+      "query": "How many seconds should an espresso shot take to pull?",
+      "relevant_pages": ["espresso.md"],
+      "answer": "28 seconds from when the pump engages until 36 g out.",
+      "answer_fact": "**shot time is 28 seconds**"
+    },
+    {
+      "id": "q12",
+      "query": "What ratio is used for cold brew concentrate and how is it served?",
+      "relevant_pages": ["cold-brew.md", "dose-and-ratio.md"],
+      "answer": "A 1:8 concentrate, diluted 1:1 with water or milk before serving.",
+      "answer_fact": "**concentrate at a 1:8 ratio**: 125 grams of coffee to 1000 grams of water"
+    },
+    {
+      "id": "q13",
+      "query": "How many hours does cold brew need to steep?",
+      "relevant_pages": ["cold-brew.md"],
+      "answer": "16 hours at room temperature, or 18 hours if refrigerated.",
+      "answer_fact": "**Steep for 16 hours** at room temperature, or 18 hours if refrigerated"
+    },
+    {
+      "id": "q14",
+      "query": "What grind size in microns should I use for espresso?",
+      "relevant_pages": ["grind-size.md", "espresso.md"],
+      "answer": "Fine, 250 microns — the finest grind used.",
+      "answer_fact": "Espresso — 250 microns"
+    },
+    {
+      "id": "q15",
+      "query": "What grind setting on the Comandante C40 is right for a French press?",
+      "relevant_pages": ["grind-size.md", "french-press.md"],
+      "answer": "Setting 30, a coarse 1000-micron grind.",
+      "answer_fact": "French press — 1000 microns** (coarse), Comandante setting 30"
+    },
+    {
+      "id": "q16",
+      "query": "How much does each click on the Comandante C40 grinder change the grind?",
+      "relevant_pages": ["grind-size.md", "equipment.md"],
+      "answer": "Roughly 30 microns per click.",
+      "answer_fact": "Each step on the Comandante C40 moves roughly **30 microns**"
+    },
+    {
+      "id": "q17",
+      "query": "What TDS should my brewing water have?",
+      "relevant_pages": ["water-chemistry.md"],
+      "answer": "150 ppm total dissolved solids.",
+      "answer_fact": "**Total dissolved solids (TDS): 150 ppm**"
+    },
+    {
+      "id": "q18",
+      "query": "What is the target total hardness for brewing water?",
+      "relevant_pages": ["water-chemistry.md"],
+      "answer": "68 ppm as calcium carbonate.",
+      "answer_fact": "**Total hardness: 68 ppm as calcium carbonate**"
+    },
+    {
+      "id": "q19",
+      "query": "How much hotter should I brew a light roast compared to a medium roast?",
+      "relevant_pages": ["brew-temperature.md"],
+      "answer": "Light roasts brew 2 degrees hotter than the medium baseline.",
+      "answer_fact": "**light roasts brew 2 degrees hotter**"
+    },
+    {
+      "id": "q20",
+      "query": "What is the ideal extraction yield percentage window for filter coffee?",
+      "relevant_pages": ["extraction-tds.md"],
+      "answer": "18 to 22 percent.",
+      "answer_fact": "target extraction window is **18 to 22 percent** for filter coffee"
+    }
+  ]
+}

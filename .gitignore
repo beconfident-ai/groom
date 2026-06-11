@@ -6,3 +6,6 @@ wiki/_meta/.last-background-refresh
 .DS_Store
 eval/results-*.json
 eval/results.txt
+eval/outcome/context-*.txt
+eval/outcome/qa.json
+eval/outcome/results-outcome.json

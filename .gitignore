@@ -4,3 +4,5 @@ cron/last-run.log
 cron/background-refresh.log
 wiki/_meta/.last-background-refresh
 .DS_Store
+eval/results-*.json
+eval/results.txt

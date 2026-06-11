@@ -132,3 +132,20 @@ test("launcher: an existing claim blocks a concurrent trigger (atomic lock)", ()
     }
   });
 });
+
+test("run.mjs init: scaffolds a valid corpus at the configured path", () => {
+  const dir = path.join(ROOT, ".tmp-init-test");
+  rmSync(dir, { recursive: true, force: true });
+  try {
+    const r = spawnSync(process.execPath, [path.join(HERE, "run.mjs"), "init", "Test KB"], {
+      encoding: "utf8", env: { ...process.env, GROOM_CORPUS: ".tmp-init-test" },
+    });
+    assert.equal(r.status, 0);
+    assert.match(r.stdout, /valid: true/);
+    for (const f of ["index.md", "sources.md", "glossary.md", "_meta/canaries.json"])
+      assert.ok(existsSync(path.join(dir, f)), `init did not create ${f}`);
+    assert.ok(validate(dir).ok, "scaffolded corpus must pass the validator");
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+});

@@ -10,3 +10,5 @@ eval/outcome/context-*.txt
 eval/outcome/qa.json
 eval/outcome/results-outcome.json
 eval/results-staleness-sim.json
+eval/ir/results-ir*.json
+eval/ir/_work/

@@ -1,0 +1,8 @@
+{
+  "background_refresh": {
+    "enabled": true,
+    "op": "lint",
+    "min_interval_hours": 24,
+    "log_file": "cron/background-refresh.log"
+  }
+}

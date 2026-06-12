@@ -7,7 +7,7 @@
  * (duplicate/near-duplicate pages, boilerplate) degrades retrieval — i.e. whether grooming
  * (prune/lint, which removes that entropy) improves standard IR metrics. Retrievers are
  * pluggable; here we run BM25 (lexical, deterministic). Dense embeddings plug in via
- * run-ir-dense.mjs. We also report the full-context dimension: corpus token size, which is
+ * dense.py. We also report the full-context dimension: corpus token size, which is
  * what "just load everything if it fits the window" pays — and what prune shrinks.
  *
  *   node eval/ir/run-ir.mjs

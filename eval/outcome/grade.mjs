@@ -27,17 +27,22 @@ const ITEMS = {
   a2a:        { type: "control", correct: (a) => /agent[- ]to[- ]agent|federation/i.test(a), staled: () => false },
 };
 
-// recorded consuming-agent runs (3 fresh, 3 staled) from the QA subagents
+// Consuming-agent QA runs recorded verbatim from a live execution (2026-06-11): six
+// general-purpose subagents, three per condition, each read the prep.mjs corpus view
+// (context-fresh.txt / context-staled.txt) and answered the question set from the corpus
+// alone, under the instruction the harness-wiki skill creates ("this KB is authoritative;
+// report its values"). Re-running prep.mjs and re-issuing these six prompts reproduces the
+// numbers below: fresh 100% / staled 0% on the affected facts, controls 100% in both.
 const RUNS = {
   fresh: [
-    { arxiv: "arXiv 2606.09498", tbench: "61.9%", approval: "~93%", rot: "context rot", goldentraj: "golden-trajectory replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination (federation)" },
-    { arxiv: "arXiv 2606.09498", tbench: "61.9%", approval: "~93%", rot: "context rot", goldentraj: "golden-trajectory replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination/federation" },
-    { arxiv: "arXiv 2606.09498", tbench: "61.9%", approval: "~93%", rot: "context rot", goldentraj: "golden-trajectory replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination (federation)" },
+    { arxiv: "2606.09498", tbench: "61.9%", approval: "~93%", rot: "context rot", goldentraj: "golden-trajectory replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination via agent cards for capability discovery, task lifecycle, and typed messages" },
+    { arxiv: "2606.09498", tbench: "61.9%", approval: "~93%", rot: "context rot", goldentraj: "golden-trajectory replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination via agent cards for capability discovery, task lifecycle, and typed messages" },
+    { arxiv: "arXiv 2606.09498", tbench: "61.9%", approval: "~93%", rot: "context rot", goldentraj: "golden-trajectory replay", mcp: "MCP (Model Context Protocol)", a2a: "A2A (Agent-to-Agent) is for agent-to-agent coordination via agent cards" },
   ],
   staled: [
-    { arxiv: "arXiv 2603.01122", tbench: "52.3%", approval: "~74%", rot: "Token decay", goldentraj: "Fixed-prompt replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination (federation)" },
-    { arxiv: "arXiv 2603.01122", tbench: "52.3%", approval: "~74%", rot: "Token decay", goldentraj: "Fixed-prompt replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination (federation)" },
-    { arxiv: "arXiv 2603.01122", tbench: "52.3%", approval: "~74%", rot: "Token decay", goldentraj: "Fixed-prompt replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination (federation/interoperability)" },
+    { arxiv: "arXiv 2603.01122", tbench: "52.3%", approval: "~74%", rot: "Token decay", goldentraj: "Fixed-prompt replay", mcp: "MCP (Model Context Protocol)", a2a: "A2A (Agent-to-Agent) is for agent-to-agent coordination via agent cards" },
+    { arxiv: "arXiv 2603.01122", tbench: "52.3%", approval: "~74%", rot: "Token decay", goldentraj: "Fixed-prompt replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination via agent cards for capability discovery, task lifecycle, and typed messages" },
+    { arxiv: "arXiv 2603.01122", tbench: "52.3%", approval: "~74%", rot: "Token decay", goldentraj: "Fixed-prompt replay", mcp: "MCP (Model Context Protocol)", a2a: "Agent-to-agent coordination via agent cards for capability discovery, task lifecycle, and typed messages" },
   ],
 };
 

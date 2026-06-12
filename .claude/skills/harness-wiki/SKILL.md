@@ -34,7 +34,8 @@ node "$REPO/pipeline/background-refresh.mjs"
 Do NOT wait for it or check its output — continue immediately to the consultation steps
 below. The script exits in <100ms: it respects the on/off toggle in
 `pipeline/config.json` (`background_refresh.enabled`), debounces to at most one run per
-configured interval (the debounce stamp doubles as the concurrency guard), and if
+configured interval, while an atomic `mkdir` claim serializes simultaneous triggers to
+exactly one run, and if
 eligible spawns a fully detached maintenance cycle whose results benefit the *next*
 consultation — stale-while-revalidate for knowledge bases. This step is how the wiki
 repairs itself: consulting it IS the maintenance trigger. If the command fails (e.g.

@@ -1,72 +1,127 @@
-# harness-wiki
+<div align="center">
 
-**GROOM — Gated Refresh of Organizational Memory.** A **self-repairing LLM knowledge base**. Install the bundled Claude Code skill and the
-wiki maintains itself as a side effect of being used: every time an agent consults it,
-a non-blocking background cycle (built on the
-[Claude Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview)) lints, prunes, or
-expands the content for the next reader. Knowledge bases rot; this one repairs itself
-through its own tool-calling harness. Cron is supported too, but the skill is the
-primary loop.
+# GROOM
+### Gated Refresh of Organizational Memory
 
-This instance's content is **harness engineering for AI agents**: the discipline of
-building the control, execution, safety, evaluation, and training infrastructure around
-LLMs. Fitting — the repo eats its own cooking. But the pipeline is content-agnostic:
-fork it, replace `wiki/`, edit the prompts, and you have a self-repairing knowledge base
-on anything.
+**A self-maintaining knowledge base for AI agents — consulting it is the act that keeps it current.**
 
-```
-wiki/                   the knowledge base (19 pages + meta)
-  index.md              map of content — agents and humans start here
-  _meta/canaries.json   load-bearing facts that must survive maintenance
-  _meta/journal.md      append-only log of every pipeline run
-pipeline/
-  run.mjs               maintenance runner + checkpoint gate (~250 lines)
-  validate.mjs          deterministic, token-free validator: structure + canaries (~125 lines)
-  background-refresh.mjs  consultation-triggered launcher (~70 lines)
-  prompts/              one prompt per operation + shared conventions
-  config.json           background-refresh toggle, op, debounce interval
-eval/                   reproducible mechanism benchmarks (fault matrix, scaling, concurrency, ablation, outcome)
-cron/                   crontab + launchd examples
-.claude/skills/
-  harness-wiki/         Claude Code skill: teaches agents to consult the wiki
-.claude/agents/
-  groom.md              subagent returning a structured "groomed brief"
-```
+![License: MIT](https://img.shields.io/badge/license-MIT-6D28D9.svg)
+![Node](https://img.shields.io/badge/node-%E2%89%A520-339933.svg)
+![Tests](https://img.shields.io/badge/tests-11%20passing-15803D.svg)
+![Agent calls](https://img.shields.io/badge/eval-0%20agent%20calls-4C1D95.svg)
 
-## The pipeline
+[**Read the survey →**](https://labs.beconfident.app/papers/harness-engineering-survey)
 
-Each operation launches a Claude Code agent (via the Agent SDK) scoped to `wiki/` with a
-focused prompt:
+![GROOM: a read activates a skill that returns in under 100 ms and spawns a detached agent which runs one bounded, checkpointed maintenance operation over the wiki.](docs/groom-overview.jpg)
 
-| Command | What it does |
+</div>
+
+---
+
+## The problem
+
+An LLM agent is only as current as the text it reads. Production agents ground on curated
+corpora — internal wikis, convention docs, runbooks, retrieval indices — and those corpora
+**rot**: the field moves, the text does not, and every agent that loads a stale page is
+silently degraded. Context engineering manages the *window* (what reaches the model at
+inference time); almost nobody maintains the *source*.
+
+We made the cost concrete. When a consuming agent treats a corpus as authoritative, injecting
+staleness into five facts dropped its answer accuracy on those facts **from 100% to 0%** while
+untouched controls held at 100%. Corpus correctness is load-bearing — and maintaining it is
+nobody's immediate job, so it doesn't happen.
+
+## What GROOM does
+
+GROOM makes **consulting the knowledge base the act that maintains it.** A consuming agent
+reads the corpus through a skill; that fires a gated launcher which returns in tens of
+milliseconds and, when a refresh is due, spawns a *detached* agent to run **one** bounded
+maintenance operation (lint, prune, expand, research, or iterate). The read never blocks; the
+next reader gets the benefit (stale-while-revalidate, for knowledge).
+
+Autonomous edits to a live corpus are the real risk, so **every operation is wrapped in a git
+checkpoint behind a deterministic, token-free validator.** An edit "counts" only if it reports
+terminal success, passes structural *and* fact-level validation, satisfies its postcondition,
+and touched nothing outside the corpus — otherwise the working tree is reset to the
+pre-operation commit. A bad edit becomes a recoverable no-op, never a committed corruption.
+
+GROOM is **content-agnostic** (point it at any markdown knowledge base, or scaffold a fresh
+one) and **retrieval-agnostic** (it maintains clean markdown; how an agent retrieves —
+progressive disclosure, full-context, BM25, dense — is a pluggable layer, not GROOM's concern).
+
+## Results
+
+Every number below is reproduced by the harness in [`eval/`](eval/) — **no agent calls, no
+network** (single laptop, Node 22; timings are load-sensitive).
+
+| Property | Result |
 |---|---|
-| `npm run lint` | Fix frontmatter, broken links, style drift. Never changes knowledge. |
-| `npm run expand` | Web-research what changed in the field (vendor blogs, specs, frameworks); update or add the 2–4 most consequential things. |
-| `npm run research` | Ingest recent arXiv papers — citation-gated (≥5 citations or clearly major) so recency alone never adds noise. 0 additions is a valid outcome. |
-| `npm run prune` | Cut duplication, merge overlapping pages, delete stale content. Net lines must go **down**. |
-| `npm run iterate` | Find the single weakest page and make it genuinely good. |
-| `npm run all` | Cron entrypoint: `research → expand → lint → prune`. |
+| **Staleness matters** | A consuming agent's accuracy on affected facts collapses **100% → 0%** under corpus staleness; controls hold at 100%. |
+| **Safety** | Across **9 fault classes**, the gate rejects every one and restores the corpus byte-identically to the checkpoint (n=450, ~10 ms). A no-gate baseline that commits unconditionally corrupts the corpus **9/9**. |
+| **Concurrency** | The naive debounce stamp is a TOCTOU race — it resolves an 8-way trigger to one run only **28–59%** of the time. An atomic `mkdir` claim fixes it to **500/500**. |
+| **Cost** | The validation gate is linear (**~34 µs/page**, sub-15 ms at 400 pages); the read path adds a warm ~50 ms and never blocks. |
+| **Canaries** | Structural validation alone misses **5/5** semantic-loss injections; fact-level canaries catch all 5 — at zero token cost. |
+| **Generalization** | Across **3 unrelated agent-KB domains** (an internal API/SDK reference, an SRE runbook, a SaaS support KB) and **2 retrievers** (BM25 + dense), removing the structural entropy grooming targets costs **45–51% of recall@1**; a groomed corpus is **~40% smaller**. |
 
-Every run appends a record (model, cost, summary) to `wiki/_meta/journal.md`.
+## Quickstart
 
-### The primary loop: skill-triggered background refresh (stale-while-revalidate)
+```bash
+npm install
+npm test                       # 11-test behavior suite — free, no agent calls
+node eval/fault-matrix.mjs     # reproduce the safety benchmark — also free
 
-The wiki refreshes itself **as a side effect of being consulted**: when the bundled
-skill activates (an agent loads wiki pages to answer a question), it first fires
-`pipeline/background-refresh.mjs` as a non-blocking step. That launcher exits in <100ms — it
-checks the toggle in `pipeline/config.json`, debounces against a stamp file (at most one
-cycle per interval), then acquires an **atomic `mkdir` claim** so that several simultaneous
-consultations resolve to exactly one cycle (the debounce stamp alone is a check-then-write
-race — see `eval/concurrency.mjs`), and only then spawns a fully detached maintenance cycle
-(default: `lint`) whose output lands in `cron/background-refresh.log`. The current
-conversation is never blocked; the next consumer gets a fresher wiki.
+npm run lint                   # first real maintenance run (spends one agent cycle)
+node pipeline/run.mjs status   # free health check: validity, drift, last run
+```
+
+Requirements: Node ≥ 20 and [Claude Code](https://claude.com/claude-code) installed and
+authenticated. The pipeline runs on **your Claude Code defaults** — the
+[Agent SDK](https://docs.claude.com/en/api/agent-sdk/overview) shares the CLI's auth and model,
+so upgrading your CLI upgrades the maintenance agent with it.
+
+### Point GROOM at any knowledge base — or bootstrap one
+
+```bash
+GROOM_CORPUS=docs node pipeline/run.mjs init "My Project Docs"   # scaffold a valid, groomable corpus
+GROOM_CORPUS=docs node pipeline/run.mjs expand                   # populate it from the field
+```
+
+`init` writes the minimal valid skeleton (`index.md`, `sources.md`, `glossary.md`,
+`_meta/canaries.json`, journal) so a new corpus passes the validator from its first commit.
+
+## How it works
+
+**The trigger.** The bundled skill is lazily loaded — it costs ~one line of context until a
+relevant question arises, then fires `pipeline/background-refresh.mjs`. The launcher checks
+three gates and returns in <100 ms: *enabled?*, *due?* (a debounce stamp, default 24 h), and
+*claimed?* (an atomic `mkdir` claim that serializes simultaneous triggers to exactly one run).
+Consulting the wiki **is** the maintenance trigger.
+
+**The operations** are discovered from `pipeline/prompts/` — every `<op>.md` is a runnable op,
+so adding one is dropping a file:
+
+| Command | What it does | Invariant |
+|---|---|---|
+| `npm run lint` | Fix frontmatter, links, style drift | Never changes meaning |
+| `npm run prune` | Cut duplication, merge overlap | Net line count must go **down** |
+| `npm run expand` | Web-research what changed; add the 2–4 most consequential things | Touches 3–6 files |
+| `npm run research` | Ingest recent arXiv work | Citation-gated; zero additions is valid |
+| `npm run iterate` | Find the single weakest page and make it good | One page; validator-gated |
+| `npm run all` | Cron entrypoint | `research → expand → lint → prune` |
+
+**The gate.** Each op is checkpointed: commit → run (with a per-op capability set and a
+path-fence) → validate (structure + canaries) + postcondition + fence check → commit, or
+`git reset --hard`. The validator (`pipeline/validate.mjs`) costs zero model tokens and is
+reused as a CI test and a free `status` command. Load-bearing facts are guarded by
+`wiki/_meta/canaries.json`; an op that legitimately moves a fact updates its canary in the
+same commit.
 
 ```jsonc
 // pipeline/config.json
 {
   "corpus": "wiki",            // which knowledge base GROOM maintains (any path; env GROOM_CORPUS overrides)
   "background_refresh": {
-    "enabled": true,           // master toggle — set false to disable at skill startup
+    "enabled": true,           // master toggle, checked at consult time
     "op": "lint",              // which cycle to run: lint | prune | iterate | expand | all
     "min_interval_hours": 24,  // debounce: at most one spawn per interval
     "log_file": "cron/background-refresh.log"
@@ -74,127 +129,51 @@ conversation is never blocked; the next consumer gets a fresher wiki.
 }
 ```
 
-### Point GROOM at any knowledge base — or bootstrap a new one
+Cron (`cron/crontab.example`, `cron/launchd.plist.example`) is available as a belt to the
+skill's suspenders — for corpora consulted rarely but that should stay fresh.
 
-GROOM is not tied to the bundled `wiki/`. Set `corpus` in `config.json` (or `GROOM_CORPUS=path`)
-to maintain any markdown knowledge base, and scaffold a fresh one end-to-end:
+## This instance: harness engineering
 
-```bash
-GROOM_CORPUS=docs node pipeline/run.mjs init "My Project Docs"  # creates a valid, groomable corpus
-GROOM_CORPUS=docs node pipeline/run.mjs expand                  # then populate it from the field
+The bundled `wiki/` is a knowledge base on **harness engineering for AI agents** — the
+control, execution, safety, evaluation, and training infrastructure around LLMs. The repo eats
+its own cooking: a knowledge base about agent infrastructure, maintained by agent
+infrastructure. It is also the corpus behind the companion survey linked above.
+
+```
+wiki/                     the knowledge base (19 pages + meta)
+  index.md                map of content — agents and humans start here
+  _meta/canaries.json     load-bearing facts that must survive maintenance
+pipeline/
+  run.mjs                 maintenance runner + checkpoint gate
+  validate.mjs            deterministic, token-free validator (structure + canaries)
+  background-refresh.mjs  the consultation-triggered launcher
+  prompts/                one prompt per operation + shared conventions
+eval/                     reproducible mechanism benchmarks (fault matrix, scaling, concurrency, ablation, outcome, IR)
+.claude/skills/           the Claude Code skill that teaches agents to consult the wiki
+.claude/agents/groom.md   subagent returning a structured "groomed brief"
 ```
 
-`init` writes the minimal valid skeleton (`index.md`, `sources.md`, `glossary.md`,
-`_meta/canaries.json`, journal) so the corpus passes the validator from its first commit.
-GROOM is also **retrieval-agnostic**: it maintains clean, well-linked markdown: *how* an agent
-consults it — progressive disclosure, full-context load, BM25, or a dense retriever — is a
-pluggable layer, not GROOM's concern. A groomed corpus benefits whichever you use.
+## Using it as agent context
 
-Cron (`cron/crontab.example`, `cron/launchd.plist.example`) remains available as a belt
-to the skill's suspenders — useful if the wiki is consulted rarely but should stay fresh.
-
-The pipeline runs on **your Claude Code defaults** — the Agent SDK shares the CLI's auth
-and model selection, so when you upgrade your CLI's model, the wiki's maintenance agent
-upgrades with it. The journal records the model that actually served each run.
-
-Operations are **discovered from `pipeline/prompts/`**: every `<op>.md` file is a
-runnable op, plus the composite `all`. Adding an operation to the pipeline is dropping a
-prompt file — no code change.
-
-### Setup
+**Claude Code (recommended):** anyone running Claude Code inside this repo gets the skill
+automatically. To use it from other projects, symlink it user-level:
 
 ```bash
-npm install
-npm test                     # 10-test behavior suite — free, no agent calls
-node eval/fault-matrix.mjs   # reproduce the mechanism benchmarks (also free)
-npm run lint                 # first real run (spends one agent cycle)
+mkdir -p ~/.claude/skills && ln -s "$(pwd)/.claude/skills/harness-wiki" ~/.claude/skills/harness-wiki
 ```
 
-Requirements: Node ≥ 20, [Claude Code](https://claude.com/claude-code) installed and
-authenticated.
+**Other agents (Codex, Cursor, anything):** the skill is one trigger adapter — the engine is
+agent-neutral. Point your agent at `wiki/index.md` (read the index, load only pages whose
+`summary` matches, trust `established` pages, hedge `emerging` ones), and invoke
+`node pipeline/background-refresh.mjs` from a hook or tool call to make consumption trigger
+maintenance.
 
-### Safety posture
+## Fork it for your own knowledge base
 
-Autonomous edits to a live corpus are the real risk, so every maintenance run is wrapped in
-a **git checkpoint with a deterministic gate** (`run.mjs` + `validate.mjs`). The run commits
-the corpus first, then executes the op with a per-op capability set (read/write/search +
-prefix-scoped read-only Bash; web tools only for `expand`/`research`/`iterate`) and a
-real-time guard that denies any write resolving outside `wiki/`. The edit is **accepted only
-if** it (a) reports terminal success, (b) passes structural validation (frontmatter, link
-resolution, index reachability), (c) passes **fact-level canaries** — load-bearing facts in
-`wiki/_meta/canaries.json` that must survive maintenance, (d) satisfies its postcondition
-(e.g. `prune` must not grow the corpus), and (e) changed nothing outside `wiki/`. Any failure
-triggers `git reset --hard`, turning a mis-prune, a crash, a turn-truncation, or a fence
-escape into a recoverable no-op instead of permanent corruption. The validator costs zero
-model tokens and is reused as a CI test and a free `status` command.
-
-The `eval/` harness measures this machinery (all reproducible, no agent calls): across nine
-fault classes the gate rejects every one and recovers the corpus byte-identically (n=450)
-where a no-gate baseline corrupts it 9/9; the validator scales linearly (~34 µs/page); the
-atomic claim resolves 8-way races 500/500; and structural checks alone miss 5/5 semantic
-losses that the canaries catch. See `wiki/permissions-and-safety.md` for the theory.
-
-## Using the wiki as agent context
-
-### Claude Code (recommended: the bundled skill)
-
-The repo ships a skill at `.claude/skills/harness-wiki/SKILL.md`. Anyone running Claude
-Code **inside this repo** gets it automatically: when a conversation touches agent
-architecture, the agent reads `wiki/index.md`, loads only the relevant pages, and respects
-each page's `updated` / `confidence` frontmatter instead of free-styling from training
-data.
-
-To use it from *other* projects, install it user-level:
-
-```bash
-mkdir -p ~/.claude/skills
-ln -s "$(pwd)/.claude/skills/harness-wiki" ~/.claude/skills/harness-wiki
-```
-
-A skill is the right mechanism here (vs. CLAUDE.md or an MCP server) because it's
-**lazy-loaded**: it costs ~one line of context until a harness-engineering question
-actually comes up, then teaches the agent progressive disclosure over the wiki. A
-knowledge base about context engineering should not itself blow your context window.
-
-### Surfacing the groom step explicitly
-
-Grooming is usually invisible: pages load into context and dissolve into the answer.
-When you want the groom step to be an **explicit, auditable artifact**, delegate to the
-bundled subagent at `.claude/agents/groom.md`: its prompt is your question, and its
-return value is a structured *groomed brief* (verdict · load-bearing claims with
-page-level citations and confidence grades · edges · pages consulted). Two properties
-make this the right mechanism rather than trying to capture hidden reasoning:
-
-- **The brief is the deliverable.** Subagents' final messages are returned as values to
-  the caller, so the groomed synthesis arrives machine-consumable, not conversational.
-- **The process is preserved.** The subagent's full transcript (every page read, every
-  judgment) lands in its own sidechain file. A `SubagentStop` hook can archive briefs:
-  the hook payload carries the transcript path, so one line of `jq` + `cp` files it
-  under `wiki/_meta/briefs/`.
-
-The groom agent also fires the background-refresh launcher on startup, so an explicit
-groom is still a maintenance trigger — reading and grooming stay one motion.
-
-### Other agents / frameworks
-
-Point your agent at `wiki/index.md` and instruct it: *read the index, load only pages
-whose `summary` matches the task, trust `established` pages, hedge `emerging` ones, check
-`updated` dates on fast-moving topics.* The per-page frontmatter is designed to make that
-selection cheap.
-
-### Humans
-
-Start at [`wiki/index.md`](wiki/index.md). Pages are 60–150 lines, prose-first, written
-for a technical reader.
-
-## Forking this for your own knowledge base
-
-1. Replace `wiki/*.md` with seed pages on your domain (keep `index.md`, `sources.md`,
-   `glossary.md`, `_meta/`).
+1. Run `init` (or replace `wiki/*.md`, keeping `index.md`, `sources.md`, `glossary.md`, `_meta/`).
 2. Edit `pipeline/prompts/_conventions.md` — it defines the domain, audience, and style.
-3. Adjust `expand.md`'s source list to your field's primary sources.
-4. Update the skill description in `.claude/skills/` so agents know when to trigger it.
-5. Schedule `npm run all` weekly. Read the journal occasionally; the pipeline is
+3. Point `expand.md` at your field's primary sources; seed canaries for your load-bearing facts.
+4. Schedule `npm run all`, or let consultation drive it. Read the journal; the pipeline is
    trustworthy-with-oversight, not autonomous.
 
 ## License

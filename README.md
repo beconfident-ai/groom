@@ -57,9 +57,9 @@ network** (single laptop, Node 22; timings are load-sensitive).
 | Property | Result |
 |---|---|
 | **Staleness matters** | A consuming agent's accuracy on affected facts collapses **100% → 0%** under corpus staleness; controls hold at 100%. |
-| **Safety** | Across **9 fault classes**, the gate rejects every one and restores the corpus byte-identically to the checkpoint (n=450, ~10 ms). A no-gate baseline that commits unconditionally corrupts the corpus **9/9**. |
+| **Safety** | Across **9 fault classes**, the gate rejects every one and restores the corpus byte-identically to the checkpoint (n=450, ~13 ms median). A no-gate baseline that commits unconditionally corrupts the corpus **9/9**. |
 | **Concurrency** | The naive debounce stamp is a TOCTOU race — it resolves an 8-way trigger to one run only **28–59%** of the time. An atomic `mkdir` claim fixes it to **500/500**. |
-| **Cost** | The validation gate is linear (**~34 µs/page**, sub-15 ms at 400 pages); the read path adds a warm ~50 ms and never blocks. |
+| **Cost** | The validation gate is linear (**tens of µs/page**, ~14–27 ms at 400 pages, load-sensitive); the read path adds a warm ~50 ms and never blocks. |
 | **Canaries** | Structural validation alone misses **5/5** semantic-loss injections; fact-level canaries catch all 5 — at zero token cost. |
 | **Generalization** | Across **3 unrelated agent-KB domains** (an internal API/SDK reference, an SRE runbook, a SaaS support KB) and **2 retrievers** (BM25 + dense), grooming yields a **45–51% relative gain in recall@1** (BM25 0.52→0.78, dense 0.56→0.81); a groomed corpus is **~40% smaller**. |
 

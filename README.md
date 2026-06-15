@@ -31,6 +31,9 @@ You get the **`harness-wiki` skill** (consult the bundled knowledge base; consul
 what triggers a gated background refresh) and the **`groom` subagent** that returns a
 structured, cited brief. Nothing else to wire up.
 
+**Other agents** (Codex, Gemini CLI, Cursor, Windsurf, Cline, Copilot) read a ready-made
+rules file that ships in this repo. See [Using it as agent context](#using-it-as-agent-context).
+
 To run the maintenance pipeline or reproduce the benchmarks yourself, clone the repo instead
 and follow the [Quickstart](#quickstart).
 
@@ -180,11 +183,24 @@ user-level:
 mkdir -p ~/.claude/skills && ln -s "$(pwd)/.claude/skills/harness-wiki" ~/.claude/skills/harness-wiki
 ```
 
-**Other agents (Codex, Cursor, anything):** the skill is one trigger adapter — the engine is
-agent-neutral. Point your agent at `wiki/index.md` (read the index, load only pages whose
-`summary` matches, trust `established` pages, hedge `emerging` ones), and invoke
-`node pipeline/background-refresh.mjs` from a hook or tool call to make consumption trigger
-maintenance.
+**Other agents.** The consult contract is agent-neutral: read `wiki/index.md`, load only the
+pages whose `summary` matches, trust `established` pages and hedge `emerging` ones, cite from
+`sources.md`, and run `node pipeline/background-refresh.mjs` when the harness can. It ships as
+a ready rules file for each agent, so working in the repo (or vendoring it into your project)
+makes your agent pick it up:
+
+| Agent | File it reads |
+|---|---|
+| **Codex / Antigravity / VS Code Codex** | [`AGENTS.md`](AGENTS.md) at the repo root (`~/.codex/AGENTS.md` for global) |
+| **Gemini CLI** | [`GEMINI.md`](GEMINI.md) at the repo root |
+| **Cursor** | [`.cursor/rules/groom.mdc`](.cursor/rules/groom.mdc) |
+| **Windsurf** | [`.windsurf/rules/groom.md`](.windsurf/rules/groom.md) |
+| **Cline** | [`.clinerules/groom.md`](.clinerules/groom.md) |
+| **GitHub Copilot** | [`.github/copilot-instructions.md`](.github/copilot-instructions.md) |
+
+To use the wiki from another project, copy the matching rules file in and point your agent at
+GROOM's `wiki/`. Any agent that can read files can consume the corpus; only the
+self-maintenance step needs a command runner.
 
 ## Fork it for your own knowledge base
 

@@ -185,22 +185,31 @@ mkdir -p ~/.claude/skills && ln -s "$(pwd)/.claude/skills/harness-wiki" ~/.claud
 
 **Other agents.** The consult contract is agent-neutral: read `wiki/index.md`, load only the
 pages whose `summary` matches, trust `established` pages and hedge `emerging` ones, cite from
-`sources.md`, and run `node pipeline/background-refresh.mjs` when the harness can. It ships as
-a ready rules file for each agent, so working in the repo (or vendoring it into your project)
-makes your agent pick it up:
+`sources.md`, and run `node pipeline/background-refresh.mjs` when the harness can. GROOM ships
+it as a ready rules file in each agent's own format. Clone the repo, and inside it every agent
+below loads its file automatically and reads `wiki/` in place — no setup. To run GROOM from
+another project, copy the file into that project (or the agent's global config) and keep a
+clone around for the agent to read `wiki/` from.
 
-| Agent | File it reads |
-|---|---|
-| **Codex / Antigravity / VS Code Codex** | [`AGENTS.md`](AGENTS.md) at the repo root (`~/.codex/AGENTS.md` for global) |
-| **Gemini CLI** | [`GEMINI.md`](GEMINI.md) at the repo root |
-| **Cursor** | [`.cursor/rules/groom.mdc`](.cursor/rules/groom.mdc) |
-| **Windsurf** | [`.windsurf/rules/groom.md`](.windsurf/rules/groom.md) |
-| **Cline** | [`.clinerules/groom.md`](.clinerules/groom.md) |
-| **GitHub Copilot** | [`.github/copilot-instructions.md`](.github/copilot-instructions.md) |
+```bash
+git clone https://github.com/beconfident-ai/groom && cd groom
+```
 
-To use the wiki from another project, copy the matching rules file in and point your agent at
-GROOM's `wiki/`. Any agent that can read files can consume the corpus; only the
-self-maintenance step needs a command runner.
+- **Codex** (and Antigravity, and the VS Code Codex extension) already read
+  [`AGENTS.md`](AGENTS.md) at the repo root. For every project: `cp AGENTS.md ~/.codex/AGENTS.md`.
+- **Gemini CLI** reads [`GEMINI.md`](GEMINI.md) at the repo root. Copy it to
+  `~/.gemini/GEMINI.md` to load it in every project.
+- **Cursor** loads [`.cursor/rules/groom.mdc`](.cursor/rules/groom.mdc) in the repo (it is
+  `alwaysApply`). Drop a copy in another project's `.cursor/rules/` to use it there.
+- **Windsurf** loads [`.windsurf/rules/groom.md`](.windsurf/rules/groom.md). Copy it into
+  another project's `.windsurf/rules/`.
+- **Cline** loads [`.clinerules/groom.md`](.clinerules/groom.md). Copy it into another
+  project's `.clinerules/`.
+- **GitHub Copilot** already reads [`.github/copilot-instructions.md`](.github/copilot-instructions.md)
+  in the repo. For the Copilot CLI in every project, copy it to `~/.copilot/copilot-instructions.md`.
+
+Any file-reading agent can consume the corpus this way; only the self-maintenance trigger
+(`node pipeline/background-refresh.mjs`) needs a command-capable harness.
 
 ## Fork it for your own knowledge base
 

@@ -1,0 +1,15 @@
+{
+  "name": "groom",
+  "version": "1.0.0",
+  "description": "Gated Refresh of Organizational Memory: consulting the knowledge base is the act that keeps it current. A read fires a gated launcher that returns in <100 ms and spawns a detached, git-checkpointed maintenance op over the corpus.",
+  "author": {
+    "name": "BeConfident Labs",
+    "url": "https://github.com/beconfident-ai"
+  },
+  "homepage": "https://labs.beconfident.app/papers/harness-engineering-survey",
+  "repository": "https://github.com/beconfident-ai/groom",
+  "license": "MIT",
+  "keywords": ["knowledge-base", "context-engineering", "agents", "harness", "memory", "self-maintaining", "rag"],
+  "skills": "./.claude/skills",
+  "agents": "./.claude/agents"
+}

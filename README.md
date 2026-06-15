@@ -18,6 +18,22 @@
 
 ---
 
+## Install
+
+In Claude Code, add the marketplace and install the plugin. Two lines:
+
+```text
+/plugin marketplace add beconfident-ai/groom
+/plugin install groom@groom
+```
+
+You get the **`harness-wiki` skill** (consult the bundled knowledge base; consulting it is
+what triggers a gated background refresh) and the **`groom` subagent** that returns a
+structured, cited brief. Nothing else to wire up.
+
+To run the maintenance pipeline or reproduce the benchmarks yourself, clone the repo instead
+and follow the [Quickstart](#quickstart).
+
 ## The problem
 
 An LLM agent is only as current as the text it reads. Production agents ground on curated
@@ -155,8 +171,10 @@ eval/                     reproducible mechanism benchmarks (fault matrix, scali
 
 ## Using it as agent context
 
-**Claude Code (recommended):** anyone running Claude Code inside this repo gets the skill
-automatically. To use it from other projects, symlink it user-level:
+**Claude Code (recommended):** install the plugin (see [Install](#install)) and you get the
+skill and the `groom` subagent in any project. From a clone, anyone running Claude Code
+inside the repo gets the skill automatically; to use that clone elsewhere, symlink it
+user-level:
 
 ```bash
 mkdir -p ~/.claude/skills && ln -s "$(pwd)/.claude/skills/harness-wiki" ~/.claude/skills/harness-wiki

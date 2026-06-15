@@ -1,0 +1,16 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "groom",
+  "description": "Gated Refresh of Organizational Memory — a self-maintaining knowledge base for AI agents.",
+  "owner": {
+    "name": "BeConfident Labs",
+    "url": "https://github.com/beconfident-ai"
+  },
+  "plugins": [
+    {
+      "name": "groom",
+      "description": "Consult a curated knowledge base through a skill; consulting it fires a gated, git-checkpointed background refresh that keeps the corpus current.",
+      "source": "./"
+    }
+  ]
+}

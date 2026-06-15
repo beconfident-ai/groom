@@ -11,17 +11,21 @@ is curated, dated, and kept current by a maintenance pipeline.
 
 ## Locating the repo
 
-All paths below are relative to the wiki repo root. If the current working directory is
-the repo itself (it contains `wiki/index.md` and `pipeline/`), the root is `.`.
-Otherwise this skill was installed user-level via symlink — resolve the root from the
-skill's own real location:
+All paths below are relative to the wiki repo root. Resolve it once — this covers all
+three ways the skill can be loaded (installed as a plugin, run inside the repo, or
+symlinked user-level):
 
 ```bash
-REPO="$(dirname "$(dirname "$(dirname "$(dirname "$(realpath ~/.claude/skills/harness-wiki/SKILL.md)")")")")"
+# 1) Plugin install — Claude Code exports CLAUDE_PLUGIN_ROOT (the plugin's root).
+# 2) In-repo — the working dir already contains wiki/ + pipeline/.
+# 3) Symlinked skill — walk up four levels from the skill's real path
+#    (<repo>/.claude/skills/harness-wiki/SKILL.md).
+REPO="${CLAUDE_PLUGIN_ROOT:-}"
+[ -z "$REPO" ] && [ -f wiki/index.md ] && [ -d pipeline ] && REPO="$(pwd)"
+[ -z "$REPO" ] && REPO="$(dirname "$(dirname "$(dirname "$(dirname "$(realpath ~/.claude/skills/harness-wiki/SKILL.md)")")")")"
 ```
 
-(the resolved SKILL.md lives at `<repo>/.claude/skills/harness-wiki/SKILL.md`, so the
-root is four `dirname`s up). Use `$REPO/` as the prefix for every path below.
+Use `$REPO/` as the prefix for every path below.
 
 ## Step 0 — kick off the background refresh (non-blocking, do this FIRST)
 
